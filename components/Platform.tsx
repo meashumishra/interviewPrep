@@ -1563,85 +1563,437 @@ const TOPICS = [
 
 const CONCEPTS = [
   {id:"two-pointer",icon:"👆",title:"Two Pointers",color:"#4EFFA0",tag:"Arrays",difficulty:"Easy–Medium",tagline:"Two indices moving toward each other (or same direction) to avoid nested loops.",FastSlowViz:FastSlowViz,
+    intro:[
+      "The brute-force solution to 'find a pair with target sum' is two nested loops — O(n²). Two Pointers eliminates the inner loop entirely. Instead of checking every possible pair, you use the sorted order of the array to make a smart decision at each step: if the current pair sum is too small, the only way to increase it is to move the left pointer right. If too large, move the right pointer left. Each step eliminates a whole chunk of possibilities.",
+      "There are two variants. Opposite-direction: start L=0 and R=n-1, converge toward the middle. Used for pair/triplet sum problems and palindrome checks. Same-direction (slow/fast): both start at 0 but move at different rates. Used for removing duplicates or partitioning. Both variants guarantee O(n) time and O(1) extra space — a huge upgrade from O(n²) brute force."
+    ],
+    whenToUse:[
+      "The problem involves finding a pair or triplet in a sorted array that meets a condition (sum equals target, difference equals k, etc.)",
+      "You need to check if a string is a palindrome or compare characters from both ends",
+      "The problem asks to 'remove duplicates' or 'partition' an array in-place",
+      "You are about to write two nested for-loops on a sorted structure — stop and think Two Pointers"
+    ],
     analogy:"Squeezing a toothpaste tube from both ends toward the middle. One hand pushes from left, the other from right. Stop when they meet.",
     aha:"Converts O(n²) nested loops into O(n) single pass on sorted arrays. The key: sorted order lets you make directional decisions without re-scanning.",
-    steps:[{c:"#4EFFA0",title:"Initialize",desc:"L=0, R=n-1 for opposite-direction. Both at 0 for same-direction."},{c:"#4EFFA0",title:"Compute & Decide",desc:"Evaluate using arr[L] and arr[R]. Decide which pointer to move."},{c:"#FFCC44",title:"Move Wisely",desc:"Sum too small → L right. Sum too big → R left. Only works on sorted!"},{c:"#4EFFA0",title:"Stop at L≥R",desc:"All meaningful pairs checked. Loop terminates."}],
+    steps:[
+      {c:"#4EFFA0",title:"Sort first (if needed)",desc:"Two Pointers requires sorted order to make directional decisions. If unsorted, sort it first — that's O(n log n), still better than O(n²)."},
+      {c:"#4EFFA0",title:"Place pointers",desc:"Opposite-direction: L=0, R=len-1. Same-direction: slow=0, fast=0 (or fast=1)."},
+      {c:"#FFCC44",title:"Evaluate and decide",desc:"Compute the value (sum, difference, comparison). Too small → move L right (increases value). Too large → move R left (decreases value). Equal → record answer."},
+      {c:"#4EFFA0",title:"Loop until pointers meet",desc:"Continue while L < R (opposite) or fast < len (same-direction). Each iteration does O(1) work, so total is O(n)."}
+    ],
+    keyPoints:[
+      "Always ask: is the array sorted? If not, can I sort it? Two Pointers without sorted order usually does not work.",
+      "For 3Sum: fix the first number with a for loop, then run Two Pointers on the remaining subarray. Reduces O(n³) → O(n²).",
+      "For palindrome check: L=0, R=len-1. Compare arr[L] and arr[R]. If equal, L++ R--. If not equal, not a palindrome. Stop when L >= R.",
+      "Skip duplicates explicitly in 3Sum/4Sum to avoid duplicate triplets in the result: while L < R and arr[L] == arr[L-1]: L++.",
+      "Time: O(n) after sorting. Space: O(1). Always explain this trade-off when presenting your solution."
+    ],
     Viz:null,problems:["Two Sum II","3Sum","Container With Most Water","Trapping Rain Water","Valid Palindrome"]},
   {id:"sliding-window",icon:"🪟",title:"Sliding Window",color:"#5B8CFF",tag:"Arrays/Strings",difficulty:"Easy–Hard",tagline:"Maintain a window over subarrays, expanding right and shrinking left.",
+    intro:[
+      "The naive solution to 'longest substring without repeating characters' checks every possible substring — O(n²) or worse. Sliding Window avoids this by reusing work: instead of recomputing the whole window from scratch, you just add one element on the right and optionally remove one on the left. The window slides forward, never going backward.",
+      "There are two types. Fixed-size window: the window size k is given — slide one step at a time, add the new right element and subtract the old left element. Variable-size window: the window grows by moving right, and shrinks by moving left only when a constraint is violated. The right pointer always moves forward, so the total number of pointer movements across the entire array is O(n). That is why it beats O(n²)."
+    ],
+    whenToUse:[
+      "The problem asks for the longest or shortest subarray/substring that satisfies some condition",
+      "The problem gives a fixed window size k and asks for max/min/average over all windows",
+      "Keywords in the problem: 'contiguous subarray', 'substring', 'consecutive elements'",
+      "You are about to write a nested loop to check every possible subarray — Sliding Window likely applies"
+    ],
     analogy:"Looking through a train window of fixed width. New scenery enters from the right, old leaves from the left. You never go backward.",
     aha:"Reuse the previous window's computation — add one element, subtract one. Turns O(n²) subarray problems into O(n).",
-    steps:[{c:"#5B8CFF",title:"Initialize",desc:"start=0, end=0. Set up window state."},{c:"#5B8CFF",title:"Expand Right",desc:"Move end right. Add arr[end] to window."},{c:"#FFCC44",title:"Shrink Left",desc:"If window violates constraint, move start right."},{c:"#5B8CFF",title:"Track Answer",desc:"At each valid window, update max/min/count."}],
+    steps:[
+      {c:"#5B8CFF",title:"Initialize window state",desc:"start=0. Prepare whatever state the window needs: a running sum, a HashMap counting characters, a set of seen values, etc."},
+      {c:"#5B8CFF",title:"Expand: move end right",desc:"For end from 0 to n-1: add arr[end] to window state. This grows the window by one element."},
+      {c:"#FFCC44",title:"Shrink: move start right (variable window)",desc:"While the window violates the constraint: remove arr[start] from window state, start++. Repeat until the window is valid again."},
+      {c:"#5B8CFF",title:"Record the answer",desc:"After each shrink step, the window is valid. Update your answer: max(answer, end-start+1) or whatever metric you are tracking."}
+    ],
+    keyPoints:[
+      "Fixed window (size k): initialize window on first k elements. Then for i from k to n-1: add arr[i], subtract arr[i-k], update answer.",
+      "Variable window state: use a HashMap for character frequency counts (Minimum Window Substring), a Set for uniqueness (Longest Substring Without Repeating), or a plain integer for sums.",
+      "The shrink loop is a while-loop, not an if-statement. You may need to shrink more than once before the window becomes valid.",
+      "Right pointer always moves forward — it never goes back. This is what makes the total time O(n) despite the nested-looking code.",
+      "Common mistake: forgetting to remove arr[start] from the window state when shrinking. Always update state BEFORE or AS you move start."
+    ],
     Viz:null,problems:["Best Time to Buy/Sell Stock","Longest Substring Without Repeating Chars","Min Window Substring","Sliding Window Maximum","Permutation in String"]},
   {id:"binary-search-algo",icon:"🔍",title:"Binary Search",color:"#FFCC44",tag:"Arrays/Search",difficulty:"Easy–Hard",tagline:"Eliminate half the search space at every step.",
+    intro:[
+      "Most people learn binary search as 'search for a target in a sorted array.' That is too narrow. Binary search works on any monotonic search space — any space where there is a clear boundary between 'condition is false' and 'condition is true.' You do not need an actual sorted array. You need the ability to look at any midpoint and decide: is the answer to the left or to the right?",
+      "The advanced form is 'binary search on the answer': instead of searching an array, you define a range of possible answers (lo=minimum possible, hi=maximum possible). Then for each midpoint, you ask 'is mid a valid answer?' and move accordingly. Koko Eating Bananas, Capacity to Ship Packages, and Find Minimum in Rotated Array are all this pattern in disguise."
+    ],
+    whenToUse:[
+      "The array is sorted and you need to find a target value or its insertion position",
+      "The problem asks for the minimum value that satisfies a condition, or maximum value that does not violate one",
+      "The input space is large (up to 10^9) and brute force would be too slow — binary search on the answer",
+      "Keywords: 'minimum time/speed/capacity such that...', 'find the first/last position of...'"
+    ],
     analogy:"Guess a number 1-100. 'Higher/lower'? Always guess the middle (50). 7 guesses max for 100 numbers — that's O(log n).",
     aha:"Not just for finding a target. Any 'find minimum satisfying condition on monotonic space' problem can use binary search. Koko Eating Bananas is binary search in disguise.",
-    steps:[{c:"#FFCC44",title:"Must Be Sorted",desc:"Search space must be monotonic."},{c:"#FFCC44",title:"Set lo & hi",desc:"lo=0, hi=n-1. Answer in [lo,hi]."},{c:"#FFCC44",title:"Check mid",desc:"mid=(lo+hi)//2. Too small→lo=mid+1. Too big→hi=mid-1."},{c:"#4EFFA0",title:"Repeat Until lo>hi",desc:"O(log n) iterations. Each halves the space."}],
+    steps:[
+      {c:"#FFCC44",title:"Define the search space",desc:"For array search: lo=0, hi=n-1. For 'binary search on answer': lo=minimum possible answer, hi=maximum possible answer."},
+      {c:"#FFCC44",title:"Compute mid safely",desc:"mid = lo + (hi-lo)//2. Avoid (lo+hi)//2 which can overflow in some languages when lo and hi are large."},
+      {c:"#FFCC44",title:"Check mid and decide direction",desc:"If condition(mid) is satisfied: this might be the answer, but search left for something better — hi=mid. If not satisfied: must go right — lo=mid+1."},
+      {c:"#4EFFA0",title:"Loop terminates at lo==hi",desc:"At this point lo is your answer. Each iteration halves the space — total O(log n) iterations regardless of input size."}
+    ],
+    keyPoints:[
+      "The template that avoids off-by-one bugs: while lo < hi: mid=lo+(hi-lo)//2. If good(mid): hi=mid. Else: lo=mid+1. Return lo.",
+      "Decide which direction is 'shrink toward answer.' For 'find minimum satisfying condition': hi=mid when satisfied, lo=mid+1 when not.",
+      "For 'find exact target': if arr[mid]==target return mid. If arr[mid]<target: lo=mid+1. If arr[mid]>target: hi=mid-1.",
+      "Rotated sorted array: identify which half is sorted by checking arr[lo] vs arr[mid]. The sorted half lets you decide which side the target is on.",
+      "Binary search on answer example — Koko Eating Bananas: lo=1, hi=max(piles). For each speed mid: can Koko finish in h hours? If yes: hi=mid. If no: lo=mid+1."
+    ],
     Viz:BinarySearchAlgoViz,problems:["Binary Search","Search 2D Matrix","Koko Eating Bananas","Find Min in Rotated Array","Median of Two Sorted Arrays"]},
   {id:"prefix-sum",icon:"➕",title:"Prefix Sum",color:"#4EFFA0",tag:"Arrays",difficulty:"Easy–Medium",tagline:"Precompute cumulative sums to answer range queries in O(1).",
+    intro:[
+      "Prefix Sum is a preprocessing technique: spend O(n) time once to build a cumulative sum array, then answer any 'sum of elements from index L to R' query in O(1) time. Without it, every range query requires scanning the subarray — O(n) per query, O(n²) total for n queries. With it, every query is one subtraction.",
+      "The formula is: sum(L, R) = prefix[R+1] - prefix[L], where prefix[i] = sum of the first i elements (prefix[0]=0). The magic comes from the 'Subarray Sum Equals K' variant: if prefix[j] - prefix[i] = K, then the subarray from i to j-1 has sum K. By storing prefix sums in a HashMap as you go, you can count these pairs in a single O(n) pass."
+    ],
+    whenToUse:[
+      "The problem asks for sum of elements in a range [L, R] — especially if there are many such queries",
+      "The problem involves 'number of subarrays with sum equal to K' or 'find subarray with given sum'",
+      "You are working with a 2D grid and need sums of rectangular sub-regions",
+      "The word 'cumulative' appears, or you need running totals"
+    ],
     analogy:"Bank statement running balance. Instead of adding up transactions for each query, your bank precomputes cumulative totals. Range sum for any period = one subtraction.",
     aha:"Build once O(n), query any range in O(1). prefix[R+1]-prefix[L] gives sum of arr[L..R]. Essential for subarray sum problems and 2D grid problems.",
-    steps:[{c:"#4EFFA0",title:"Build Prefix Array",desc:"prefix[0]=0. prefix[i]=prefix[i-1]+arr[i-1]. One O(n) pass."},{c:"#4EFFA0",title:"Range Query O(1)",desc:"sum(L,R) = prefix[R+1] - prefix[L]. Constant time!"},{c:"#FFCC44",title:"2D Prefix Sum",desc:"Extend to grids: prefix[r][c] = sum of all elements in top-left rectangle to (r,c)."},{c:"#4EFFA0",title:"Subarray Sum = K",desc:"Use HashMap to track prefix sums. Count pairs where prefix[j]-prefix[i]=K."}],
+    steps:[
+      {c:"#4EFFA0",title:"Build prefix array",desc:"prefix = [0] * (n+1). For i from 1 to n: prefix[i] = prefix[i-1] + arr[i-1]. The extra 0 at the start simplifies edge cases."},
+      {c:"#4EFFA0",title:"Range query in O(1)",desc:"sum(L, R) = prefix[R+1] - prefix[L]. Test with a small example: arr=[1,2,3,4], sum(1,2) = prefix[3]-prefix[1] = 6-1 = 5. Correct."},
+      {c:"#FFCC44",title:"Subarray Sum = K (HashMap trick)",desc:"Use a HashMap: counts[prefix_sum] = how many times this prefix sum appeared. For each new prefix sum p: add counts[p-K] to answer. Then counts[p]++."},
+      {c:"#4EFFA0",title:"2D prefix sum",desc:"prefix[r][c] = arr[r][c] + prefix[r-1][c] + prefix[r][c-1] - prefix[r-1][c-1]. Then any rectangle sum is 4 lookups."}
+    ],
+    keyPoints:[
+      "Always make prefix array length n+1 with prefix[0]=0. This avoids special-casing the query when L=0.",
+      "Subarray Sum Equals K — initialize counts={0:1} before the loop. The {0:1} handles subarrays starting from index 0 that already equal K.",
+      "Product of Array Except Self uses the same idea but with products: build a left-product array and a right-product array, multiply them.",
+      "For Maximum Subarray (Kadane's): the recurrence is dp[i] = max(arr[i], dp[i-1]+arr[i]). This is a DP, but conceptually you are tracking the best running sum.",
+      "Prefix sum only works for range SUM queries (addition). For range MIN/MAX queries you need a Segment Tree or Sparse Table."
+    ],
     Viz:PrefixSumViz,problems:["Range Sum Query","Subarray Sum Equals K","Product of Array Except Self","Maximum Subarray","2D Range Sum Query"]},
   {id:"monotonic-stack",icon:"📉",title:"Monotonic Stack",color:"#FF9F5B",tag:"Arrays",difficulty:"Medium",tagline:"Stack that maintains monotonic (always increasing or decreasing) order.",
+    intro:[
+      "A Monotonic Stack is a regular stack with one extra rule: you maintain its contents in monotonically increasing or decreasing order. When a new element arrives that would violate the order, you pop elements off the stack until the order is restored, then push the new element. The critical insight: each pop event is the answer to a question about the popped element.",
+      "For 'Next Greater Element': maintain a decreasing stack (largest on bottom). When you encounter element X, pop all elements smaller than X — X is their 'next greater element.' This solves a problem that naively requires O(n²) in a single O(n) pass. Each element is pushed once and popped at most once — total O(n) operations."
+    ],
+    whenToUse:[
+      "The problem asks for the 'next greater element', 'next smaller element', 'previous greater', or 'previous smaller' for each element",
+      "Keywords: 'daily temperatures', 'how many days until', 'visible buildings', 'span of stock price'",
+      "The problem involves histograms or height-based area calculations (Largest Rectangle, Trapping Rain Water)",
+      "You need to find the nearest element to the left or right that is larger or smaller than the current one"
+    ],
     analogy:"Imagine a line of people at a concert. Everyone can only see past people shorter than them. Whenever a taller person arrives, shorter people behind them give up — they pop off. The stack always holds people in height order.",
     aha:"Whenever a problem asks 'next greater/smaller element' or 'how many days until warmer temperature' — monotonic stack solves it in O(n) vs O(n²) brute force.",
-    steps:[{c:"#FF9F5B",title:"Maintain Order",desc:"For 'next greater': keep stack in decreasing order. Pop when current element is larger than top."},{c:"#FF9F5B",title:"Pop = Answer Found",desc:"When you pop element X because of element Y, Y is the 'next greater' for X. Record this."},{c:"#FFCC44",title:"Push Current",desc:"After popping all smaller elements, push current index."},{c:"#4EFFA0",title:"Remaining = No Answer",desc:"Elements still in stack when loop ends had no 'next greater' — answer is -1 or 0."}],
+    steps:[
+      {c:"#FF9F5B",title:"Decide stack order",desc:"Next Greater Element → decreasing stack (pop when current > top). Next Smaller → increasing stack (pop when current < top). Push indices, not values."},
+      {c:"#FF9F5B",title:"Pop = answer found",desc:"When you pop index i because of current index j: answer[i] = arr[j]. That popped element finally found its 'next greater/smaller' — it is arr[j]."},
+      {c:"#FFCC44",title:"Push current index",desc:"After all invalid elements are popped, push the current index. Storing indices (not values) lets you compute distances for problems like Daily Temperatures."},
+      {c:"#4EFFA0",title:"Handle remaining",desc:"After the loop, everything still in the stack found no next greater/smaller. Set answer[i] = -1 or 0 for those indices."}
+    ],
+    keyPoints:[
+      "Always push INDICES onto the stack, not values. You need the index to compute distances (answer[i] = j - i for Daily Temperatures) and to access the value as arr[stack[-1]].",
+      "Daily Temperatures recipe: decreasing stack. For each day j: while stack and temperatures[j] > temperatures[stack[-1]]: i=stack.pop(), result[i]=j-i. stack.append(j).",
+      "Largest Rectangle in Histogram: increasing stack. For each bar, pop taller bars when a shorter one arrives. The width of the rectangle for the popped bar = current_index - stack[-1] - 1.",
+      "Trapping Rain Water: for each position, water level = min(max_left, max_right) - height[i]. Use two-pass prefix max arrays, or monotonic stack.",
+      "The total time is O(n) because each element is pushed exactly once and popped at most once — the while loop's total work across all iterations is bounded by n pops."
+    ],
     Viz:MonotonicStackViz,problems:["Daily Temperatures","Next Greater Element","Largest Rectangle in Histogram","Trapping Rain Water","Car Fleet"]},
   {id:"bfs-dfs",icon:"🕸️",title:"BFS & DFS",color:"#C084FC",tag:"Graphs/Trees",difficulty:"Medium–Hard",tagline:"BFS explores level by level (Queue). DFS goes deep first (Stack/recursion).",
+    intro:[
+      "BFS and DFS are the two fundamental ways to traverse a graph or tree. They differ in one thing: the data structure. BFS uses a queue (FIFO) — it processes all nodes at distance 1 before distance 2, distance 2 before distance 3, and so on. DFS uses a stack or recursion (LIFO) — it follows one path as deep as it can go before backtracking and trying the next path.",
+      "BFS is your go-to for shortest path in unweighted graphs. Because it explores by distance, the first time BFS reaches a node is guaranteed to be via the shortest route. DFS is natural for trees, connected component discovery, cycle detection, and backtracking. For grid problems (Number of Islands), both work — use BFS if you need shortest path, DFS if you just need to explore a region. Always track visited nodes to prevent infinite loops."
+    ],
+    whenToUse:[
+      "BFS: shortest path or minimum steps in an unweighted graph or grid",
+      "BFS: 'level by level' processing of a tree (level-order traversal, minimum depth)",
+      "DFS: detect if a path exists between two nodes, count connected components, find all paths",
+      "DFS: tree problems where you need to process children before the parent (post-order), or parent before children (pre-order)"
+    ],
     analogy:"BFS: visiting a city all streets 1 block away before 2 blocks. DFS: following one street as far as possible before backtracking.",
     aha:"BFS guarantees shortest path in unweighted graphs. DFS is natural for trees, cycle detection, backtracking. The choice between them is the first graph algorithm decision.",
-    steps:[{c:"#C084FC",title:"BFS: Enqueue Source",desc:"Add start to queue + visited. Loop: dequeue, process, enqueue unvisited neighbors."},{c:"#C084FC",title:"BFS = Shortest Path",desc:"First time you reach target in BFS = shortest path. Guaranteed."},{c:"#FFCC44",title:"DFS: Stack/Recursion",desc:"Go deep on each neighbor before backtracking. Implicit call stack."},{c:"#4EFFA0",title:"Mark Visited First",desc:"Mark when discovered (enqueued/pushed), NOT when processed. Prevents duplicate processing."}],
+    steps:[
+      {c:"#C084FC",title:"Build the graph",desc:"Convert the input to an adjacency list: graph = collections.defaultdict(list). For each edge [u,v]: graph[u].append(v); graph[v].append(u). For grids, neighbors are the 4 (or 8) adjacent cells."},
+      {c:"#C084FC",title:"BFS template",desc:"queue=deque([start]); visited={start}. While queue: node=queue.popleft(). For each neighbor: if not visited: visited.add(neighbor); queue.append(neighbor)."},
+      {c:"#FFCC44",title:"DFS template",desc:"def dfs(node): visited.add(node). For each neighbor: if not visited: dfs(neighbor). — Or iteratively: stack=[start]; while stack: node=stack.pop(); for each unvisited neighbor: push it."},
+      {c:"#4EFFA0",title:"Mark visited WHEN DISCOVERED",desc:"Add to visited when you enqueue/push the node — NOT when you dequeue/pop it. Otherwise the same node gets added to the queue multiple times, causing O(n²) work."}
+    ],
+    keyPoints:[
+      "Number of Islands: for each unvisited '1' cell, run DFS/BFS to mark the whole island as visited. Count how many times you start fresh.",
+      "BFS level tracking: record queue size at start of each level. Process exactly that many nodes before incrementing the level counter.",
+      "Grid DFS: check bounds BEFORE recursing — if r<0 or r>=rows or c<0 or c>=cols or grid[r][c]!='1': return.",
+      "For cycle detection in undirected graphs with DFS: track the parent node. If you see a visited neighbor that is NOT the parent, you found a cycle.",
+      "Word Ladder (BFS on implicit graph): each word is a node. Two words are neighbors if they differ by exactly one letter. BFS finds shortest transformation sequence."
+    ],
     Viz:null,problems:["Number of Islands","Course Schedule","Pacific Atlantic Water Flow","Word Ladder","Clone Graph"]},
   {id:"union-find",icon:"🔗",title:"Union-Find",color:"#FF6B6B",tag:"Graphs",difficulty:"Medium",tagline:"Track connected components efficiently. Union merges groups; Find identifies them.",
+    intro:[
+      "Union-Find (also called Disjoint Set Union) is a data structure for grouping elements into non-overlapping sets. It supports two operations: find(x) which returns the representative ('root') of x's group, and union(x,y) which merges the groups of x and y. Both operations run in nearly O(1) amortized time with two optimizations: path compression and union by rank.",
+      "The key technique — path compression — makes find() extremely fast. When you call find(x) and follow the chain of parents up to the root, you then flatten the chain: set every node's parent directly to the root. Future calls to find() on those same nodes skip the chain entirely. Combined with union by rank (always attaching the shorter tree under the taller), the tree stays almost completely flat."
+    ],
+    whenToUse:[
+      "The problem asks to count connected components in a graph, or asks if two nodes are in the same component",
+      "The problem involves merging groups dynamically as you process edges one by one",
+      "Cycle detection in an undirected graph: before adding an edge, check if both endpoints are already connected",
+      "Keywords: 'accounts merge', 'friend groups', 'redundant connection', 'number of provinces'"
+    ],
     analogy:"Social network: if A knows B and B knows C, they're all in the same friend group. Union-Find tracks these groups — merge two groups (Union) or check if two people are connected (Find).",
     aha:"Number of connected components, detecting cycles in undirected graphs, Kruskal's MST — whenever the problem is about grouping or connectivity, Union-Find beats BFS/DFS in simplicity.",
-    steps:[{c:"#FF6B6B",title:"Initialize",desc:"Each node is its own parent: parent[i]=i. rank[i]=0."},{c:"#FF6B6B",title:"Find (with path compression)",desc:"find(x): if parent[x]≠x, parent[x]=find(parent[x]). Flattens tree — amortized O(α(n))≈O(1)."},{c:"#FFCC44",title:"Union (by rank)",desc:"Find roots of both nodes. Attach smaller tree under larger. Keeps tree flat."},{c:"#4EFFA0",title:"Cycle Detection",desc:"Before union(A,B), check if find(A)==find(B). If yes, edge A-B creates a cycle!"}],
+    steps:[
+      {c:"#FF6B6B",title:"Initialize",desc:"parent[i] = i (each node is its own parent/root). rank[i] = 0 (all trees start with height 0). components = n (n separate groups initially)."},
+      {c:"#FF6B6B",title:"find(x) with path compression",desc:"If parent[x] != x: parent[x] = find(parent[x]). Return parent[x]. This recursively flattens the path to root — future calls are O(1)."},
+      {c:"#FFCC44",title:"union(x, y) by rank",desc:"rootX=find(x), rootY=find(y). If rootX==rootY: already connected, return False. Attach shorter tree under taller (by rank). components--. Return True."},
+      {c:"#4EFFA0",title:"Cycle detection",desc:"For each edge (u,v): if find(u)==find(v): adding this edge creates a cycle! This is how 'Redundant Connection' is solved — the first edge that connects two already-connected nodes."}
+    ],
+    keyPoints:[
+      "Full Python template: parent=[i for i in range(n)]; rank=[0]*n. def find(x): if parent[x]!=x: parent[x]=find(parent[x]); return parent[x]. def union(x,y): rx,ry=find(x),find(y); if rx==ry: return; if rank[rx]<rank[ry]: rx,ry=ry,rx; parent[ry]=rx; if rank[rx]==rank[ry]: rank[rx]+=1.",
+      "Count components: initialize components=n. Every successful union (where find(x)!=find(y)) decrements components by 1.",
+      "Accounts Merge: for each account, union all emails to the first email. Group emails by their root. Rebuild accounts.",
+      "Union-Find vs BFS/DFS for components: Union-Find is faster when you process edges one at a time and need dynamic connectivity. BFS/DFS is simpler when the full graph is known upfront.",
+      "Path compression alone makes find() O(log n). Combined with union by rank it becomes O(α(n)) — effectively O(1) for all practical inputs."
+    ],
     Viz:UnionFindViz,problems:["Number of Connected Components","Graph Valid Tree","Redundant Connection","Accounts Merge","Most Stones Removed"]},
   {id:"topological-sort",icon:"📋",title:"Topological Sort",color:"#FFCC44",tag:"Graphs/DAG",difficulty:"Medium",tagline:"Order nodes of a DAG so all edges point forward. Course prerequisites.",Viz:TopologicalSortViz,
+    intro:[
+      "Topological sort produces a linear ordering of nodes in a Directed Acyclic Graph (DAG) such that for every directed edge u→v, node u comes before v in the ordering. It answers the question: 'given a set of tasks with dependencies, in what order should I do them?' If any cycle exists in the graph, no valid ordering is possible — topological sort detects this automatically.",
+      "The most common algorithm is Kahn's algorithm (BFS-based). Start by computing the in-degree (number of incoming edges) of every node. Nodes with in-degree 0 have no prerequisites and can be processed first. Each time you process a node, you decrement the in-degree of its neighbors. When a neighbor's in-degree reaches 0, it is now ready and gets added to the queue. If you process all n nodes, you have a valid ordering. If fewer than n nodes get processed, there is a cycle."
+    ],
+    whenToUse:[
+      "The problem involves tasks with dependencies: 'finish A before B', 'take prerequisite X before course Y'",
+      "The problem asks if a set of dependencies can be satisfied, or asks for a valid execution order",
+      "Keywords: 'course schedule', 'prerequisites', 'build order', 'alien dictionary', 'task dependencies'",
+      "You need to detect a cycle in a directed graph"
+    ],
     analogy:"Building a house: foundation before walls, walls before roof. Each task depends on previous ones. Topological sort finds a valid build order — or tells you it's impossible (cycle = deadlock).",
     aha:"Course Schedule, build systems, package managers, task scheduling — any 'do X before Y' problem is topological sort. Cycle in the graph = impossible ordering.",
-    steps:[{c:"#FFCC44",title:"Compute In-Degrees",desc:"Count incoming edges for every node. Nodes with in-degree 0 have no prerequisites."},{c:"#FFCC44",title:"BFS (Kahn's Algorithm)",desc:"Start with all in-degree-0 nodes in queue. Process them, decrement neighbors' in-degrees."},{c:"#FFCC44",title:"Add Freed Nodes",desc:"When a neighbor's in-degree hits 0, it's ready — enqueue it."},{c:"#FF6B6B",title:"Cycle Detection",desc:"If processed nodes < total nodes, a cycle exists — no valid ordering possible."}],
+    steps:[
+      {c:"#FFCC44",title:"Build adjacency list + in-degrees",desc:"graph = defaultdict(list). indegree = [0]*n. For each prerequisite [a,b] (b must come before a): graph[b].append(a); indegree[a]++."},
+      {c:"#FFCC44",title:"Enqueue all zero-indegree nodes",desc:"queue = deque of all nodes where indegree[node]==0. These are the starting points — they have no prerequisites."},
+      {c:"#FFCC44",title:"Process and decrement",desc:"While queue: node=queue.popleft(); result.append(node). For each neighbor of node: indegree[neighbor]--. If indegree[neighbor]==0: queue.append(neighbor)."},
+      {c:"#FF6B6B",title:"Cycle check",desc:"After the loop: if len(result)==n: valid ordering found (return result or True). Else: a cycle exists — return [] or False."}
+    ],
+    keyPoints:[
+      "Course Schedule I (can finish?): build graph, run Kahn's, return len(result)==numCourses.",
+      "Course Schedule II (return order): same thing, but return the result array itself.",
+      "Alien Dictionary: build the graph by comparing adjacent words character by character. The first differing character gives an edge. Then topological sort.",
+      "DFS-based topological sort: run DFS, and append each node to the result AFTER all its descendants are processed. Reverse the result at the end.",
+      "If the problem says 'detect cycle in directed graph' — topological sort is one clean solution. If processed < total nodes, there is a cycle."
+    ],
     problems:["Course Schedule","Course Schedule II","Alien Dictionary","Find Order","Parallel Courses"]},
   {id:"dp",icon:"🧩",title:"Dynamic Programming",color:"#FF6B6B",tag:"Optimization",difficulty:"Medium–Hard",tagline:"Break into overlapping subproblems. Solve each once, cache the result.",Viz2D:TwoDDPViz,
+    intro:[
+      "Dynamic Programming (DP) solves problems by breaking them into smaller subproblems, solving each subproblem exactly once, and storing the result so it is not recomputed. It applies when two conditions hold: (1) Overlapping subproblems — the same smaller problem is needed multiple times. (2) Optimal substructure — the optimal solution to the whole problem can be built from optimal solutions to its parts.",
+      "The learning path for DP has three stages. Stage 1: write a plain recursive brute-force solution. Stage 2: add memoization — a dictionary that caches results, so each subproblem is computed at most once (top-down DP). Stage 3: convert to a bottom-up table — compute subproblems in order from smallest to largest, eliminating recursion entirely (tabulation). The most important step is Stage 1: if you cannot write the recursion, you cannot write the DP."
+    ],
+    whenToUse:[
+      "The problem asks for a count, maximum, minimum, or boolean (can it be done?) — not an enumeration of all possibilities",
+      "You try brute-force recursion and notice the same subproblem being solved multiple times with the same arguments",
+      "Keywords: 'number of ways to...', 'minimum cost to...', 'longest...', 'can you reach...', 'maximum profit...'",
+      "The problem has a clear 'choice' at each step: include or exclude, buy or skip, take or leave"
+    ],
     analogy:"Climbing stairs: ways to reach step 10 = ways(9) + ways(8). Notice ways(8) is needed twice — DP caches it. Memoization = top-down cache; Tabulation = bottom-up table.",
     aha:"Two conditions: overlapping subproblems + optimal substructure. If both → DP. Start with brute-force recursion, add memoization, then convert to tabulation.",
-    steps:[{c:"#FF6B6B",title:"Define dp[i]",desc:"'dp[i] = number of ways to reach step i.' Be precise — this is everything."},{c:"#FF6B6B",title:"Recurrence",desc:"dp[i] = dp[i-1] + dp[i-2]. How does dp[i] relate to smaller subproblems?"},{c:"#FFCC44",title:"Base Cases",desc:"dp[0]=1, dp[1]=1. The answers you know without computation."},{c:"#4EFFA0",title:"Fill Bottom-Up",desc:"Compute dp[0],dp[1],...,dp[n]. Use previous cells — no recursion needed."}],
+    steps:[
+      {c:"#FF6B6B",title:"Step 1: write the recursion",desc:"Identify the choice at each step. Write solve(i) = f(solve(i-1), solve(i-2), ...). Do not worry about efficiency yet. Make it correct first."},
+      {c:"#FF6B6B",title:"Step 2: add memoization",desc:"Add a cache dictionary. At the start of solve(i): if i in cache: return cache[i]. At the end: cache[i] = result; return result. This is top-down DP."},
+      {c:"#FFCC44",title:"Step 3: define dp array and base cases",desc:"dp[i] = the answer for subproblem of size i. Fill in the base cases (smallest subproblems you know without computing): dp[0]=..., dp[1]=..."},
+      {c:"#4EFFA0",title:"Step 4: fill bottom-up",desc:"For i from 2 to n: dp[i] = the recurrence from Step 1, using dp[i-1], dp[i-2], etc. Return dp[n]. This eliminates recursion and call-stack overhead."}
+    ],
+    keyPoints:[
+      "Define dp[i] in plain English before writing a single line of code. 'dp[i] = minimum cost to reach step i.' Precision here determines everything that follows.",
+      "House Robber recurrence: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). In English: rob house i (add nums[i] to dp[i-2]) vs skip it (take dp[i-1]).",
+      "Coin Change recurrence: dp[i] = min(dp[i - coin] + 1) for each coin. If dp[i-coin] is unreachable, skip that coin.",
+      "2D DP (Longest Common Subsequence): dp[i][j] = length of LCS of first i chars of s and first j chars of t. If s[i-1]==t[j-1]: dp[i][j]=dp[i-1][j-1]+1. Else: dp[i][j]=max(dp[i-1][j], dp[i][j-1]).",
+      "Space optimization: if dp[i] only depends on dp[i-1] and dp[i-2], you only need two variables — not the full array. Reduces O(n) space to O(1)."
+    ],
     Viz:DPViz,problems:["Climbing Stairs","House Robber","Longest Palindromic Substring","Coin Change","Edit Distance"]},
   {id:"backtracking",icon:"🌿",title:"Backtracking",color:"#C084FC",tag:"Combinatorics",difficulty:"Medium–Hard",tagline:"Try all possibilities. Abandon a path as soon as it's invalid.",
+    intro:[
+      "Backtracking is a systematic way to try all possibilities and collect valid ones. At each step, you make a choice, recurse to explore all paths from that choice, and then undo the choice ('backtrack') so you can try the next option. It is essentially a depth-first search through a decision tree.",
+      "What makes backtracking different from brute force is pruning: before recursing into a choice, you check whether this path can possibly lead to a valid solution. If not, you skip it entirely — pruning that entire branch of the decision tree. Good pruning is what separates a 1-second solution from a 10-minute time limit exceeded. The template is always: choose, explore, unchoose."
+    ],
+    whenToUse:[
+      "The problem asks for ALL valid combinations, permutations, subsets, or paths — not just one",
+      "The problem involves placing pieces on a board with constraints (N-Queens, Sudoku solver)",
+      "Keywords: 'find all subsets/combinations/permutations', 'generate all valid...', 'count all ways to...'",
+      "You need to try all possibilities but with constraints that let you discard invalid paths early"
+    ],
     analogy:"Solving a maze: try every path. Hit a dead end? Backtrack to the last junction and try a different direction. Never revisit a dead end.",
     aha:"Subsets, permutations, combinations, N-Queens — whenever you need to explore all possibilities with constraints, backtracking is the structured way to do it. Pruning eliminates dead branches early.",
-    steps:[{c:"#C084FC",title:"Choose",desc:"Pick one option from available choices at current step."},{c:"#C084FC",title:"Explore",desc:"Recurse with updated state."},{c:"#FFCC44",title:"Unchoose (Backtrack)",desc:"After recursion returns, undo the choice. Restore state."},{c:"#4EFFA0",title:"Prune Early",desc:"Before exploring, check if current path can possibly lead to a valid solution. Skip if not."}],
+    steps:[
+      {c:"#C084FC",title:"Base case: record solution",desc:"If the current path is a complete valid solution: result.append(path.copy()). The .copy() is critical — you are about to modify path, so save its current state."},
+      {c:"#C084FC",title:"Choose: iterate options",desc:"For each candidate choice at the current step: make the choice (append to path, mark used, etc.)."},
+      {c:"#FFCC44",title:"Explore: recurse",desc:"Call the same function recursively with the updated state. This explores all completions of the current partial solution."},
+      {c:"#4EFFA0",title:"Unchoose: backtrack",desc:"After the recursive call returns, undo the choice (pop from path, unmark used). Now the loop continues to the next candidate."}
+    ],
+    keyPoints:[
+      "Full template: def backtrack(start, path): if is_complete(path): result.append(path[:]); return. For i in range(start, n): if is_valid(i): path.append(nums[i]); backtrack(i+1, path); path.pop().",
+      "Subsets: no pruning needed. At each level, every element is either included or not. backtrack(start): result.append(path[:]); for i in range(start,n): path.append(nums[i]); backtrack(i+1); path.pop().",
+      "Combination Sum (reuse allowed): backtrack(start): if total==target: record. If total>target: return (prune!). For i in range(start,n): add nums[i]; backtrack(i, ...); remove nums[i]. Note i not i+1 allows reuse.",
+      "Permutations: use a 'used' boolean array. For each position: try all unused elements. Mark used before recursing, unmark after.",
+      "Avoid duplicates in Subsets II / Combination Sum II: sort the array first. In the for loop: if i>start and nums[i]==nums[i-1]: continue. This skips duplicate choices at the same level."
+    ],
     Viz:BacktrackingViz,problems:["Subsets","Permutations","Combination Sum","N-Queens","Word Search"]},
   {id:"greedy",icon:"🏃",title:"Greedy",color:"#FF9F5B",tag:"Optimization",difficulty:"Medium",tagline:"Make the locally optimal choice at each step. Works when local = global optimum.",
+    intro:[
+      "A greedy algorithm makes the locally best choice at each step and never revisits past decisions. This sounds risky — how do you know the local best always leads to the global best? The answer is the 'greedy choice property': for some problems, a locally optimal choice never blocks the globally optimal solution. Proving this is the hard part; applying the algorithm once proven is usually straightforward.",
+      "The difference between Greedy and DP: DP considers ALL choices at each step and picks the best overall. Greedy commits to ONE choice immediately without looking ahead. This makes greedy O(n) or O(n log n) — much faster than DP's O(n²) or O(n²). Use greedy when you can prove it safe; fall back to DP when you cannot."
+    ],
+    whenToUse:[
+      "Interval scheduling: 'minimum number of meeting rooms', 'non-overlapping intervals', 'maximum number of events'",
+      "Jump Game style problems where you track 'how far can I reach from here'",
+      "The problem has a natural ordering (sort by end time, start time, value) and a scan that makes local decisions",
+      "After trying DP and finding the recurrence is trivial ('always take the locally best option'), simplify to greedy"
+    ],
     analogy:"Buying groceries on a budget. A greedy shopper always picks the cheapest item first. Sometimes this gives the best overall spend — and sometimes it doesn't (that's when greedy fails and DP is needed).",
     aha:"Greedy works when the problem has the 'greedy choice property': a locally optimal choice never disqualifies the global optimal. If not → DP. Activity selection, interval scheduling, Jump Game all have this property.",
-    steps:[{c:"#FF9F5B",title:"Sort (often)",desc:"Most greedy problems start with sorting by some criterion: end time, value, index."},{c:"#FF9F5B",title:"Make Local Best Choice",desc:"At each step, pick the option that seems best right now."},{c:"#FFCC44",title:"Never Reconsider",desc:"Unlike DP, greedy never revisits past choices. This is why it's O(n) instead of O(n²)."},{c:"#4EFFA0",title:"Prove It Works",desc:"The trick is verifying greedy is safe. Ask: does picking locally optimal ever prevent globally optimal?"}],
+    steps:[
+      {c:"#FF9F5B",title:"Sort by the right criterion",desc:"Most greedy problems start with a sort. Intervals: sort by end time. Jump Game: process left to right by index. Gas Station: process circularly."},
+      {c:"#FF9F5B",title:"Make the local best choice",desc:"At each step, pick the option that maximizes or minimizes your current objective without worrying about what comes later."},
+      {c:"#FFCC44",title:"Track state, not history",desc:"You only need to track the current best value, not the full history. Jump Game: track max_reach. Gas Station: track current_tank and total_tank."},
+      {c:"#4EFFA0",title:"Single pass to the answer",desc:"After sorting, a single O(n) scan produces the answer. No nested loops, no recursion. If you need nested loops, reconsider whether this is truly greedy."}
+    ],
+    keyPoints:[
+      "Jump Game: track max_reach = max(max_reach, i + nums[i]). If i > max_reach at any point, return False. If max_reach >= n-1 at any point, return True.",
+      "Jump Game II (min jumps): at each position update reach. When you exhaust the current jump range, increment jumps and set current range to reach.",
+      "Gas Station: if total_gas >= total_cost, a solution always exists. Find the starting station: scan left to right, reset start=i+1 whenever running tank goes negative.",
+      "Partition Labels: for each character, find its last occurrence. Scan left to right, extending the current partition end to max(end, last[char]). When i==end, cut here.",
+      "Greedy fails when future choices depend on the current one in a non-obvious way. Classic example: coin change with arbitrary denominations — greedy gives wrong answer, DP is needed."
+    ],
     Viz:GreedyViz,problems:["Jump Game","Jump Game II","Gas Station","Hand of Straights","Partition Labels"]},
   {id:"dijkstra",icon:"🗺️",title:"Dijkstra / Shortest Path",color:"#FF9F5B",tag:"Graphs",difficulty:"Medium–Hard",tagline:"Greedy: always expand the unvisited node with the smallest known distance.",
+    intro:[
+      "Dijkstra's algorithm finds the shortest path from a source node to all other nodes in a weighted graph with non-negative edge weights. It is BFS with one modification: instead of a regular queue (FIFO), it uses a min-heap (priority queue) ordered by current shortest known distance. This guarantees that the first time you pop a node from the heap, you have found its shortest distance — it is final.",
+      "The algorithm is greedy: at each step, it commits to the unvisited node with the smallest known distance. This greedy choice is safe because all edge weights are non-negative — you cannot find a shorter path to an already-processed node by going through a later node. For negative weights, use Bellman-Ford instead."
+    ],
+    whenToUse:[
+      "The problem involves a weighted graph and asks for minimum cost, minimum time, or minimum effort to reach a node",
+      "Keywords: 'network delay time', 'cheapest flights', 'minimum path cost', 'shortest weighted path'",
+      "The graph has non-negative edge weights (for negative weights, use Bellman-Ford)",
+      "The problem is essentially 'weighted BFS' — same as BFS but edges cost different amounts"
+    ],
     analogy:"GPS navigation. You're in city A, want shortest route to E. You always drive to the nearest city you haven't visited yet. Once you reach a city, that distance is final — you can never find a shorter path later.",
     aha:"Dijkstra is BFS with a priority queue instead of a regular queue. The priority queue ensures you always process the nearest unvisited node — making it greedy-optimal for non-negative weights.",
-    steps:[{c:"#FF9F5B",title:"Initialize",desc:"dist[source]=0, dist[all others]=∞. Add source to min-heap."},{c:"#FF9F5B",title:"Process Nearest",desc:"Pop minimum-distance node u from heap. Its distance is now FINAL — no shorter path exists."},{c:"#FFCC44",title:"Relax Neighbors",desc:"For each neighbor v of u: if dist[u]+weight(u,v) < dist[v], update dist[v] and push v to heap."},{c:"#4EFFA0",title:"Repeat Until Done",desc:"Continue until heap is empty. O((V+E) log V) with binary heap."}],
+    steps:[
+      {c:"#FF9F5B",title:"Initialize distances",desc:"dist = [infinity] * n; dist[source] = 0. Min-heap: heap = [(0, source)] — tuples of (distance, node). Python heapq orders by first element."},
+      {c:"#FF9F5B",title:"Pop nearest node",desc:"(d, u) = heapq.heappop(heap). If d > dist[u]: this is a stale entry — skip it (we already found a shorter path to u). Continue to next."},
+      {c:"#FFCC44",title:"Relax neighbors",desc:"For each neighbor v of u with edge weight w: new_dist = dist[u] + w. If new_dist < dist[v]: dist[v] = new_dist; heapq.heappush(heap, (new_dist, v))."},
+      {c:"#4EFFA0",title:"Answer",desc:"After heap is empty: dist[target] = shortest distance to target, or infinity if unreachable. For 'Network Delay Time': return max(dist) if all reachable, else -1."}
+    ],
+    keyPoints:[
+      "Full Python template: import heapq. dist=[float('inf')]*n; dist[src]=0; heap=[(0,src)]. While heap: d,u=heapq.heappop(heap); if d>dist[u]: continue; for v,w in graph[u]: if dist[u]+w<dist[v]: dist[v]=dist[u]+w; heapq.heappush(heap,(dist[v],v)).",
+      "The 'if d > dist[u]: continue' check is essential. Without it you process stale heap entries and get wrong answers.",
+      "Cheapest Flights Within K Stops: this is NOT standard Dijkstra because of the K-stop constraint. Use BFS with (cost, node, stops_remaining) state, or modified Bellman-Ford.",
+      "Path With Minimum Effort: edge weight = absolute difference in height. Dijkstra finds the path where the maximum single step is minimized.",
+      "Time complexity: O((V+E) log V) with a binary heap. For dense graphs, O(V²) with a simple array is sometimes faster."
+    ],
     Viz:DijkstraViz,problems:["Network Delay Time","Cheapest Flights Within K Stops","Path With Minimum Effort","Swim in Rising Water"]},
   {id:"fast-slow",icon:"🐇",title:"Fast & Slow Pointers",color:"#C084FC",tag:"Linked Lists",difficulty:"Easy–Medium",tagline:"Two pointers at different speeds. Slow=1 step, Fast=2 steps. Cycle detection.",
+    intro:[
+      "Fast and Slow Pointers (Floyd's algorithm) uses two pointers that move through a sequence at different speeds. The slow pointer moves one step at a time; the fast pointer moves two. If a cycle exists, the fast pointer will eventually lap the slow pointer and they will meet inside the cycle — guaranteed. If no cycle exists, the fast pointer reaches the end (null) and you return false.",
+      "Beyond cycle detection, the same technique finds the middle of a linked list in one pass: when fast reaches the last node, slow is exactly at the middle. This is used in Reorder List (find middle, reverse second half, merge) and in Sort List (merge sort, split at middle). It is a purely pointer-based technique — O(1) extra space regardless of list length."
+    ],
+    whenToUse:[
+      "Cycle detection in a linked list or any sequence (Linked List Cycle, Happy Number, Find Duplicate Number)",
+      "Finding the middle of a linked list in a single pass",
+      "Any problem where the list needs to be split in half (merge sort, reorder list, palindrome linked list)",
+      "Finding the start of a cycle after detecting one"
+    ],
     analogy:"Two runners on a circular track. If there's a loop, the faster runner will eventually lap the slower one and they'll meet. If there's no loop, the fast runner just falls off the end.",
     aha:"Fast/slow pointers solve cycle detection in O(n) time and O(1) space — no HashSet needed. The same pattern finds the middle of a linked list (when fast reaches end, slow is at middle).",
-    steps:[{c:"#C084FC",title:"Initialize",desc:"Both slow and fast start at HEAD."},{c:"#C084FC",title:"Move",desc:"slow=slow.next (1 step). fast=fast.next.next (2 steps)."},{c:"#FFCC44",title:"Check Meeting",desc:"If slow===fast: cycle detected! If fast or fast.next is null: no cycle."},{c:"#4EFFA0",title:"Find Cycle Start",desc:"After detection, reset one pointer to HEAD. Move both at speed 1. They meet at cycle start."}],
+    steps:[
+      {c:"#C084FC",title:"Initialize both at head",desc:"slow = head; fast = head. Both start at the same place."},
+      {c:"#C084FC",title:"Move at different speeds",desc:"While fast and fast.next: slow = slow.next; fast = fast.next.next. Check after moving. If fast reaches null: no cycle."},
+      {c:"#FFCC44",title:"Cycle: slow == fast",desc:"If slow == fast inside the loop, a cycle is detected. For just detection, return True here."},
+      {c:"#4EFFA0",title:"Find cycle start (if needed)",desc:"Reset one pointer to head. Move both at speed 1. They will meet exactly at the cycle's start. Mathematical proof: the distances work out because of how Floyd's algorithm is structured."}
+    ],
+    keyPoints:[
+      "Cycle detection template: slow=fast=head. While fast and fast.next: slow=slow.next; fast=fast.next.next; if slow==fast: return True. Return False.",
+      "Find middle: slow=fast=head. While fast and fast.next: slow=slow.next; fast=fast.next.next. After loop, slow is at the middle.",
+      "For even-length lists, 'middle' by this technique is the second of the two middle nodes. Adjust if you need the first: while fast.next and fast.next.next.",
+      "Find Duplicate Number: treat the array as a linked list where index i points to nums[i]. A duplicate creates a cycle. Apply Floyd's and find the cycle start.",
+      "Happy Number: apply fast/slow to the 'sum of squares of digits' sequence. If the sequence reaches 1: happy. If slow==fast at a non-1 value: cycle, not happy."
+    ],
     Viz:FastSlowViz,problems:["Linked List Cycle","Find Duplicate Number","Middle of Linked List","Reorder List","Happy Number"]},
-    {id:"sorting-algos",icon:"🔀",title:"Sorting Algorithms",color:"#5B8CFF",tag:"Fundamentals",difficulty:"Easy–Medium",tagline:"Merge Sort is O(n log n) divide-and-conquer. Quick Sort is O(n log n) average.",
+  {id:"sorting-algos",icon:"🔀",title:"Sorting Algorithms",color:"#5B8CFF",tag:"Fundamentals",difficulty:"Easy–Medium",tagline:"Merge Sort is O(n log n) divide-and-conquer. Quick Sort is O(n log n) average.",
+    intro:[
+      "Merge Sort and Quick Sort are the two O(n log n) sorting algorithms every interviewer expects you to implement from scratch. Merge Sort divides the array in half, recursively sorts each half, then merges them in O(n) time. It is stable (equal elements keep their relative order) and always O(n log n) regardless of input. The cost is O(n) extra space for the merge step.",
+      "Quick Sort picks a pivot, partitions the array so all smaller elements are left and all larger are right, then recursively sorts each side. The pivot ends up in its final sorted position after each partition. Average case is O(n log n) with O(log n) space (call stack). Worst case is O(n²) when the pivot is always the smallest or largest element — randomizing the pivot avoids this in practice."
+    ],
+    whenToUse:[
+      "You are asked to implement a sorting algorithm from scratch (very common in interviews)",
+      "The problem requires a stable sort (equal elements must preserve relative order) — use Merge Sort",
+      "The problem is 'Kth Largest Element' — Quick Select (partition of Quick Sort) gives O(n) average",
+      "The problem asks to sort a linked list — Merge Sort is the natural fit (no random access needed)"
+    ],
     analogy:"Merge Sort: split a messy deck in half, sort each half, then merge by picking the smaller card each time. Quick Sort: pick a pivot card, put all smaller cards left, all bigger right — then sort each side.",
     aha:"Merge Sort is stable and always O(n log n). Quick Sort is O(n log n) average but O(n²) worst. Python's sort (Timsort) and Java's Arrays.sort both use hybrid approaches. Know both for interviews.",
-    steps:[{c:"#5B8CFF",title:"Merge Sort: Divide",desc:"Split array in half recursively until single elements. O(log n) levels of recursion."},{c:"#5B8CFF",title:"Merge Sort: Conquer",desc:"Merge two sorted halves by comparing front elements. O(n) per merge step. Total: O(n log n)."},{c:"#FFCC44",title:"Quick Sort: Partition",desc:"Pick pivot. Move all smaller to left, all larger to right. Pivot is now in its final position."},{c:"#4EFFA0",title:"Quick Sort: Recurse",desc:"Recursively sort left and right partitions. Average O(n log n) — bad pivot choice gives O(n²)."}],
+    steps:[
+      {c:"#5B8CFF",title:"Merge Sort: divide",desc:"If len(arr) <= 1: return arr (base case). mid = len(arr)//2. left = mergeSort(arr[:mid]). right = mergeSort(arr[mid:])."},
+      {c:"#5B8CFF",title:"Merge Sort: merge",desc:"i=j=0; result=[]. While i<len(left) and j<len(right): append smaller of left[i] or right[j], advance that pointer. Append remaining elements. Return result."},
+      {c:"#FFCC44",title:"Quick Sort: partition",desc:"Pick pivot (e.g., last element). Scan left to right with pointer p=lo. If arr[i]<=pivot: swap arr[i] and arr[p], p++. After scan, swap arr[p] and pivot. Pivot is now at index p."},
+      {c:"#4EFFA0",title:"Quick Sort: recurse",desc:"quickSort(arr, lo, p-1); quickSort(arr, p+1, hi). Randomize pivot selection to avoid O(n²) worst case: swap a random element with arr[hi] before partitioning."}
+    ],
+    keyPoints:[
+      "Merge Sort time: O(n log n) always. Space: O(n) for the temporary arrays during merge.",
+      "Quick Sort time: O(n log n) average, O(n²) worst. Space: O(log n) average call stack. Random pivot makes worst case extremely unlikely.",
+      "Quick Select for Kth Largest: partition once — if pivot lands at index k, that is the answer. If k < pivot index, recurse left. If k > pivot index, recurse right. O(n) average.",
+      "Sort Colors (Dutch National Flag): three-pointer problem. Maintain lo, mid, hi. Elements 0 go to [0..lo), elements 2 go to (hi..n). Elements 1 stay in the middle.",
+      "In real code: Python's sorted() uses Timsort (hybrid merge+insertion, O(n log n) stable). Java's Arrays.sort for primitives uses dual-pivot Quick Sort; for objects uses Timsort."
+    ],
     Viz:SortingViz,problems:["Sort an Array","Merge Sort (implement)","Quick Sort (implement)","Sort Colors","Kth Largest Element"]},
   {id:"monotonic-stack2",icon:"📉",title:"Monotonic Stack (Deep)",color:"#FF9F5B",tag:"Advanced",difficulty:"Medium–Hard",tagline:"See Monotonic Stack above — covered in patterns.",analogy:"",aha:"",steps:[],Viz:null,problems:[],hidden:true},
   {id:"intervals",icon:"📅",title:"Intervals",color:"#4EFFA0",tag:"Arrays",difficulty:"Medium",tagline:"Sort by start time, then greedily merge or count overlaps.",
+    intro:[
+      "Interval problems involve ranges [start, end] and relationships between them: do they overlap? Can we merge them? How many rooms do we need? The universal first step is to sort intervals by start time. Once sorted, overlapping intervals are adjacent — you can detect and handle them with a simple linear scan.",
+      "Two intervals [a,b] and [c,d] overlap if and only if a <= d AND c <= b (they share at least one point). After sorting by start time, interval i overlaps with interval i-1 if intervals[i].start <= intervals[i-1].end. This is the condition you check in the scan. If they overlap, merge by extending the end to max(both ends). If they do not, the current interval is separate — start a new one."
+    ],
+    whenToUse:[
+      "The problem involves ranges/intervals: meetings, time slots, ranges on a number line",
+      "Keywords: 'merge intervals', 'overlapping intervals', 'minimum meeting rooms', 'insert interval'",
+      "The problem asks how many intervals overlap at a given point (count simultaneous events)",
+      "You need to find gaps between intervals, or check if a person can attend all meetings"
+    ],
     analogy:"Meeting room scheduling. You have a calendar of meetings. Which ones overlap? Can you attend all? Sort by start time, then scan — it becomes obvious.",
     aha:"Sort by start time first — every interval problem becomes a linear scan after that. The pattern: sort + scan + track the 'current end' pointer = O(n log n) total.",
-    steps:[{c:"#4EFFA0",title:"Sort by Start",desc:"Always sort intervals by start time. This makes overlapping intervals adjacent."},{c:"#4EFFA0",title:"Merge Overlapping",desc:"If next.start ≤ current.end → overlap → extend current.end = max(current.end, next.end)."},{c:"#FFCC44",title:"Count Overlaps",desc:"For meeting rooms: use min-heap tracking end times. Heap size = rooms needed."},{c:"#4EFFA0",title:"Insert Interval",desc:"Find the insertion point (binary search or scan), then merge all overlapping intervals."}],
+    steps:[
+      {c:"#4EFFA0",title:"Sort by start time",desc:"intervals.sort(key=lambda x: x[0]). This ensures overlapping intervals are adjacent and you never miss an overlap."},
+      {c:"#4EFFA0",title:"Merge overlapping",desc:"merged=[intervals[0]]. For each interval: if interval[0] <= merged[-1][1]: merged[-1][1] = max(merged[-1][1], interval[1]). Else: merged.append(interval)."},
+      {c:"#FFCC44",title:"Count rooms (min-heap)",desc:"Meeting Rooms II: heap tracks end times of ongoing meetings. For each interval: if heap and heap[0] <= start: heapq.heappop(heap). heapq.heappush(heap, end). Answer = len(heap)."},
+      {c:"#4EFFA0",title:"Insert Interval",desc:"Add new interval to list, sort, then run merge. Or: scan once — skip intervals that end before new start, merge those that overlap with new interval, add remaining."}
+    ],
+    keyPoints:[
+      "Two intervals overlap if: interval[i][0] <= interval[i-1][1] (after sorting by start). They do NOT overlap if interval[i][0] > interval[i-1][1].",
+      "Merge Intervals: sort by start, scan and merge. If current start > last merged end: no overlap, append. Else: extend last merged end to max of both ends.",
+      "Meeting Rooms I: sort by start, check if any consecutive pair overlaps (intervals[i][0] < intervals[i-1][1]). If yes, cannot attend all.",
+      "Meeting Rooms II (min rooms): use a min-heap of end times. For each meeting: if earliest-ending meeting finishes before this one starts, reuse that room (pop). Always push current end time.",
+      "Non-overlapping Intervals (minimum removals): sort by END time (not start). Greedily keep each interval that does not overlap with the last kept one. removals = n - kept."
+    ],
     Viz:IntervalsViz,problems:["Merge Intervals","Insert Interval","Non-overlapping Intervals","Meeting Rooms","Meeting Rooms II"]},
   {id:"bit-manipulation",icon:"⚡",title:"Bit Manipulation",color:"#FFCC44",tag:"Math",difficulty:"Easy–Medium",tagline:"Operate directly on binary representation for ultra-fast O(1) tricks.",
+    intro:[
+      "Bit manipulation works directly on the binary representation of integers. Every integer is stored as a sequence of 0s and 1s (bits), and bitwise operators let you manipulate individual bits with a single CPU instruction. This gives O(1) operations for tasks that would otherwise require loops or extra memory.",
+      "The four core operators are: AND (&) — both bits must be 1. OR (|) — at least one bit is 1. XOR (^) — exactly one bit is 1 (different). NOT (~) — flip all bits. XOR is the most powerful for interview problems because of its cancellation property: any number XORed with itself is 0, and any number XORed with 0 is itself unchanged. This lets you find the one non-duplicate in an array by XORing all elements together."
+    ],
+    whenToUse:[
+      "The problem involves finding the single non-duplicate element, or elements appearing odd numbers of times",
+      "The problem asks you to count, check, or manipulate individual bits of an integer",
+      "You need O(1) space for a problem that would otherwise require extra data structures",
+      "Keywords: 'power of two', 'number of 1 bits', 'single number', 'missing number', 'XOR'"
+    ],
     analogy:"A light switch panel with 32 switches. Each switch is one bit. Flipping all switches = NOT. Checking if switch 3 is on = AND with 00100. Toggling switch 3 = XOR with 00100.",
     aha:"XOR is the magic operation: A^A=0, A^0=A. Find the single non-duplicate in O(n) time, O(1) space using XOR. Bit tricks replace complex logic with single instructions.",
-    steps:[{c:"#FFCC44",title:"AND (&)",desc:"Both bits must be 1. Use to check if a bit is set: n & (1<<k) checks bit k."},{c:"#FFCC44",title:"OR (|)",desc:"Either bit is 1. Use to set a bit: n | (1<<k) sets bit k."},{c:"#FFCC44",title:"XOR (^)",desc:"Different bits = 1. XOR with itself = 0. XOR with 0 = unchanged. Cancelation property."},{c:"#4EFFA0",title:"n & (n-1)",desc:"Clears the lowest set bit. Count set bits by repeatedly applying. Power of 2 check: n&(n-1)==0."}],
+    steps:[
+      {c:"#FFCC44",title:"Check if bit k is set",desc:"n & (1 << k). If result is non-zero, bit k is 1. Example: 13 = 1101. 13 & (1<<2) = 1101 & 0100 = 0100 ≠ 0, so bit 2 is set."},
+      {c:"#FFCC44",title:"Set / clear / toggle bit k",desc:"Set: n | (1<<k). Clear: n & ~(1<<k). Toggle: n ^ (1<<k). These are the building blocks of all bit manipulation."},
+      {c:"#FFCC44",title:"n & (n-1) trick",desc:"Clears the lowest set bit of n. Use it to count set bits: while n: n &= (n-1); count++. Also: if n & (n-1) == 0 and n > 0, then n is a power of 2."},
+      {c:"#4EFFA0",title:"XOR cancellation",desc:"Single Number: result = 0; for num in nums: result ^= num. All duplicates cancel out (x^x=0). The remaining value is the single non-duplicate. O(n) time, O(1) space."}
+    ],
+    keyPoints:[
+      "Single Number: XOR all elements. Duplicates cancel, single element remains. result = 0; for x in nums: result ^= x.",
+      "Missing Number (0 to n, one missing): XOR all indices (0..n) with all values. Everything cancels except the missing number.",
+      "Number of 1 Bits: use n & (n-1) in a loop to count set bits. Or in Python: bin(n).count('1').",
+      "Power of 2 check: n > 0 and (n & (n-1)) == 0. A power of 2 has exactly one set bit; subtracting 1 flips all lower bits and clears the set bit.",
+      "Sum of Two Integers without + operator: carry = (a & b) << 1; a = a ^ b; b = carry. Repeat until no carry. In Python, handle 32-bit overflow manually with masks."
+    ],
     Viz:BitViz,problems:["Single Number","Number of 1 Bits","Counting Bits","Reverse Bits","Sum of Two Integers"]},
   {id:"union-find2",icon:"🔗",title:"Union Find (Covered)",color:"#FF6B6B",tag:"Graphs",difficulty:"Medium",tagline:"",analogy:"",aha:"",steps:[],Viz:null,problems:[],hidden:true},
 ];
@@ -1772,14 +2124,43 @@ function PrepPage() {
                 <div className="cc-arrow" style={{transform:isOpen?"rotate(180deg)":"none"}}>▾</div>
               </div>
               {isOpen&&(<div className="cc-body" onClick={e=>e.stopPropagation()}>
+                {c.intro&&c.intro.length>0&&(
+                  <div style={{marginBottom:16}}>
+                    {c.intro.map((p,i)=><p key={i} style={{fontSize:13.5,lineHeight:1.85,color:"var(--tx)",marginBottom:i<c.intro.length-1?13:0,opacity:.9}}>{p}</p>)}
+                  </div>
+                )}
+                {c.whenToUse&&c.whenToUse.length>0&&(
+                  <div style={{background:"#172a1f",border:"1px solid #253d2a",borderRadius:9,padding:"11px 14px",marginBottom:14}}>
+                    <div style={{fontSize:9,fontWeight:700,color:"var(--g)",letterSpacing:1.2,textTransform:"uppercase",marginBottom:8}}>🎯 Recognize This Pattern When…</div>
+                    {c.whenToUse.map((s,i)=>(
+                      <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:i<c.whenToUse.length-1?6:0}}>
+                        <span style={{color:"var(--g)",fontWeight:700,fontSize:12,lineHeight:1.6,flexShrink:0}}>✓</span>
+                        <span style={{fontSize:12.5,lineHeight:1.65,color:"var(--tx)",opacity:.88}}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {c.analogy&&<div className="cc-analogy"><div style={{fontSize:9,fontWeight:700,color:c.color,letterSpacing:1.2,textTransform:"uppercase",marginBottom:6}}>💡 Analogy</div><p>"{c.analogy}"</p></div>}
                 {c.Viz&&<c.Viz/>}
                 {c.Viz2D&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,margin:"12px 0 8px"}}>🗺️ 2D DP Visualizer</div><c.Viz2D/></>}
                 {c.FastSlowViz&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,margin:"12px 0 8px"}}>🐇 Fast & Slow Pointer Visualizer</div><c.FastSlowViz/></>}
-                {c.steps.length>0&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,marginBottom:9}}>🧩 How It Works</div>
+                {c.steps.length>0&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,marginBottom:9}}>🧩 How It Works — Step by Step</div>
                 <div className="cc-steps">{c.steps.map((s,i)=><div className="cc-step" key={i}><div className="cc-step-num" style={{background:`${s.c}18`,color:s.c}}>{String(i+1).padStart(2,"0")}</div><div><h5>{s.title}</h5><p>{s.desc}</p></div></div>)}</div></>}
-                {c.aha&&<div className="cc-aha"><div style={{fontSize:9,fontWeight:700,color:"var(--y)",letterSpacing:1.2,textTransform:"uppercase",marginBottom:5}}>⚡ Aha Moment</div><p>{c.aha}</p></div>}
-                {c.problems.length>0&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,marginBottom:8}}>🎯 Key Problems</div>
+                {c.aha&&<div className="cc-aha"><div style={{fontSize:9,fontWeight:700,color:"var(--y)",letterSpacing:1.2,textTransform:"uppercase",marginBottom:5}}>⚡ The Key Insight</div><p>{c.aha}</p></div>}
+                {c.keyPoints&&c.keyPoints.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,marginBottom:9}}>📋 Beginner Checklist — Before You Code</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      {c.keyPoints.map((kp,i)=>(
+                        <div key={i} style={{display:"flex",gap:9,alignItems:"flex-start",background:"var(--sur)",border:"1px solid var(--bdr)",borderRadius:7,padding:"9px 13px"}}>
+                          <span style={{color:"var(--g)",fontWeight:700,fontSize:13,lineHeight:1.6,flexShrink:0}}>→</span>
+                          <span style={{fontSize:12.5,lineHeight:1.65,color:"var(--tx)",opacity:.9}}>{kp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {c.problems.length>0&&<><div style={{fontFamily:"var(--fd)",fontSize:12.5,fontWeight:700,marginBottom:8}}>🎯 Practice These First</div>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{c.problems.map(p=><span key={p} style={{padding:"3px 10px",background:"var(--sur)",border:"1px solid var(--bdr)",borderRadius:20,fontSize:11.5,color:"var(--mu)"}}>{p}</span>)}</div></>}
               </div>)}
             </div>);
